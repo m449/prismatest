@@ -1,0 +1,20 @@
+type User {
+  id: ID! @id
+  username: String! @unique
+  points: Int
+  items: [Item!]!
+}
+
+type Item {
+  id: ID! @id
+  name: String!
+  multiplier: Float!
+  creator: User @relation(link: INLINE)
+}
+
+type Event {
+  id: ID! @id
+  duration: Int!
+  value: Int!
+  creator: User @relation(link: INLINE)
+}
