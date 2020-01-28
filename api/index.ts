@@ -1,17 +1,73 @@
 import { prisma } from './generated/prisma-client'
+import datamodelInfo from './generated/nexus-prisma'
+import * as path from 'path'
+import { stringArg, idArg } from 'nexus'
+import { prismaObjectType, makePrismaSchema } from 'nexus-prisma'
+import { GraphQLServer } from 'graphql-yoga'
 
-async function main() {
+const Query = prismaObjectType({
+  name: 'Query',
+  definition(t) {
+    t.prismaFields(['item'])
+    t.list.field('feed', {
+      type: 'Item',
+      resolve: (_, args, ctx) =>
+        ctx.prisma.items({ where: { published: true } }),
+    })
+    t.list.field('itemsByUser', {
+      type: 'Item',
+      args: { email: stringArg() },
+      resolve: (_, { email }, ctx) =>
+        ctx.prisma.items({ where: { author: { email } } }),
+    })
+  },
+})
 
-  const allUsers = await prisma.users();
-  console.log(allUsers);
+const Mutation = prismaObjectType({
+  name: 'Mutation',
+  definition(t) {
+    t.prismaFields(['createUser', 'deleteItem'])
+    t.field('createDraft', {
+      type: 'Item',
+      args: {
+        title: stringArg(),
+        authorId: idArg({ nullable: true }),
+      },
+      resolve: (_, { title, authorId }, ctx) =>
+        ctx.prisma.createItem({
+          title,
+          author: { connect: { id: authorId } },
+        }),
+    })
+    t.field('publish', {
+      type: 'Item',
+      nullable: true,
+      args: { id: idArg() },
+      resolve: (_, { id }, ctx) =>
+        ctx.prisma.updateItem({
+          where: { id },
+          data: { published: true },
+        }),
+    })
+  },
+})
 
-  const allItems = await prisma.items();
-  console.log(allItems);
+const schema = makePrismaSchema({
+  types: [Query, Mutation],
 
-  const allEvents = await prisma.events();
-  console.log(allEvents);
-  const itemsByUser = await prisma.user({ username: 'Bob' }).items()
-  console.log(`All items by that user: ${JSON.stringify(itemsByUser)}`)
-}
+  prisma: {
+    datamodelInfo,
+    client: prisma,
+  },
 
-main().catch(e => console.error(e))
+  outputs: {
+    schema: path.join(__dirname, './generated/schema.graphql'),
+    typegen: path.join(__dirname, './generated/nexus.ts'),
+  },
+})
+
+const server = new GraphQLServer({
+  schema,
+  context: { prisma },
+})
+server.start(() => console.log('Server is running on http://localhost:4000'))
