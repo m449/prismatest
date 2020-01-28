@@ -20,6 +20,7 @@ type BatchPayload {
 
 type Event {
   id: ID!
+  item: Item!
   duration: Int!
   value: Int!
   creator: User
@@ -33,6 +34,7 @@ type EventConnection {
 
 input EventCreateInput {
   id: ID
+  item: ItemCreateOneInput!
   duration: Int!
   value: Int!
   creator: UserCreateOneInput
@@ -77,6 +79,7 @@ input EventSubscriptionWhereInput {
 }
 
 input EventUpdateInput {
+  item: ItemUpdateOneRequiredInput
   duration: Int
   value: Int
   creator: UserUpdateOneInput
@@ -102,6 +105,7 @@ input EventWhereInput {
   id_not_starts_with: ID
   id_ends_with: ID
   id_not_ends_with: ID
+  item: ItemWhereInput
   duration: Int
   duration_not: Int
   duration_in: [Int!]
@@ -151,6 +155,11 @@ input ItemCreateInput {
 input ItemCreateManyWithoutCreatorInput {
   create: [ItemCreateWithoutCreatorInput!]
   connect: [ItemWhereUniqueInput!]
+}
+
+input ItemCreateOneInput {
+  create: ItemCreateInput
+  connect: ItemWhereUniqueInput
 }
 
 input ItemCreateWithoutCreatorInput {
@@ -239,6 +248,12 @@ input ItemSubscriptionWhereInput {
   NOT: [ItemSubscriptionWhereInput!]
 }
 
+input ItemUpdateDataInput {
+  name: String
+  multiplier: Float
+  creator: UserUpdateOneWithoutItemsInput
+}
+
 input ItemUpdateInput {
   name: String
   multiplier: Float
@@ -272,6 +287,13 @@ input ItemUpdateManyWithWhereNestedInput {
   data: ItemUpdateManyDataInput!
 }
 
+input ItemUpdateOneRequiredInput {
+  create: ItemCreateInput
+  update: ItemUpdateDataInput
+  upsert: ItemUpsertNestedInput
+  connect: ItemWhereUniqueInput
+}
+
 input ItemUpdateWithoutCreatorDataInput {
   name: String
   multiplier: Float
@@ -280,6 +302,11 @@ input ItemUpdateWithoutCreatorDataInput {
 input ItemUpdateWithWhereUniqueWithoutCreatorInput {
   where: ItemWhereUniqueInput!
   data: ItemUpdateWithoutCreatorDataInput!
+}
+
+input ItemUpsertNestedInput {
+  update: ItemUpdateDataInput!
+  create: ItemCreateInput!
 }
 
 input ItemUpsertWithWhereUniqueWithoutCreatorInput {

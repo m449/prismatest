@@ -312,6 +312,7 @@ export interface EventWhereInput {
   id_not_starts_with?: Maybe<ID_Input>;
   id_ends_with?: Maybe<ID_Input>;
   id_not_ends_with?: Maybe<ID_Input>;
+  item?: Maybe<ItemWhereInput>;
   duration?: Maybe<Int>;
   duration_not?: Maybe<Int>;
   duration_in?: Maybe<Int[] | Int>;
@@ -345,9 +346,33 @@ export type UserWhereUniqueInput = AtLeastOne<{
 
 export interface EventCreateInput {
   id?: Maybe<ID_Input>;
+  item: ItemCreateOneInput;
   duration: Int;
   value: Int;
   creator?: Maybe<UserCreateOneInput>;
+}
+
+export interface ItemCreateOneInput {
+  create?: Maybe<ItemCreateInput>;
+  connect?: Maybe<ItemWhereUniqueInput>;
+}
+
+export interface ItemCreateInput {
+  id?: Maybe<ID_Input>;
+  name: String;
+  multiplier: Float;
+  creator?: Maybe<UserCreateOneWithoutItemsInput>;
+}
+
+export interface UserCreateOneWithoutItemsInput {
+  create?: Maybe<UserCreateWithoutItemsInput>;
+  connect?: Maybe<UserWhereUniqueInput>;
+}
+
+export interface UserCreateWithoutItemsInput {
+  id?: Maybe<ID_Input>;
+  username: String;
+  points?: Maybe<Int>;
 }
 
 export interface UserCreateOneInput {
@@ -376,9 +401,47 @@ export interface ItemCreateWithoutCreatorInput {
 }
 
 export interface EventUpdateInput {
+  item?: Maybe<ItemUpdateOneRequiredInput>;
   duration?: Maybe<Int>;
   value?: Maybe<Int>;
   creator?: Maybe<UserUpdateOneInput>;
+}
+
+export interface ItemUpdateOneRequiredInput {
+  create?: Maybe<ItemCreateInput>;
+  update?: Maybe<ItemUpdateDataInput>;
+  upsert?: Maybe<ItemUpsertNestedInput>;
+  connect?: Maybe<ItemWhereUniqueInput>;
+}
+
+export interface ItemUpdateDataInput {
+  name?: Maybe<String>;
+  multiplier?: Maybe<Float>;
+  creator?: Maybe<UserUpdateOneWithoutItemsInput>;
+}
+
+export interface UserUpdateOneWithoutItemsInput {
+  create?: Maybe<UserCreateWithoutItemsInput>;
+  update?: Maybe<UserUpdateWithoutItemsDataInput>;
+  upsert?: Maybe<UserUpsertWithoutItemsInput>;
+  delete?: Maybe<Boolean>;
+  disconnect?: Maybe<Boolean>;
+  connect?: Maybe<UserWhereUniqueInput>;
+}
+
+export interface UserUpdateWithoutItemsDataInput {
+  username?: Maybe<String>;
+  points?: Maybe<Int>;
+}
+
+export interface UserUpsertWithoutItemsInput {
+  update: UserUpdateWithoutItemsDataInput;
+  create: UserCreateWithoutItemsInput;
+}
+
+export interface ItemUpsertNestedInput {
+  update: ItemUpdateDataInput;
+  create: ItemCreateInput;
 }
 
 export interface UserUpdateOneInput {
@@ -496,47 +559,10 @@ export interface EventUpdateManyMutationInput {
   value?: Maybe<Int>;
 }
 
-export interface ItemCreateInput {
-  id?: Maybe<ID_Input>;
-  name: String;
-  multiplier: Float;
-  creator?: Maybe<UserCreateOneWithoutItemsInput>;
-}
-
-export interface UserCreateOneWithoutItemsInput {
-  create?: Maybe<UserCreateWithoutItemsInput>;
-  connect?: Maybe<UserWhereUniqueInput>;
-}
-
-export interface UserCreateWithoutItemsInput {
-  id?: Maybe<ID_Input>;
-  username: String;
-  points?: Maybe<Int>;
-}
-
 export interface ItemUpdateInput {
   name?: Maybe<String>;
   multiplier?: Maybe<Float>;
   creator?: Maybe<UserUpdateOneWithoutItemsInput>;
-}
-
-export interface UserUpdateOneWithoutItemsInput {
-  create?: Maybe<UserCreateWithoutItemsInput>;
-  update?: Maybe<UserUpdateWithoutItemsDataInput>;
-  upsert?: Maybe<UserUpsertWithoutItemsInput>;
-  delete?: Maybe<Boolean>;
-  disconnect?: Maybe<Boolean>;
-  connect?: Maybe<UserWhereUniqueInput>;
-}
-
-export interface UserUpdateWithoutItemsDataInput {
-  username?: Maybe<String>;
-  points?: Maybe<Int>;
-}
-
-export interface UserUpsertWithoutItemsInput {
-  update: UserUpdateWithoutItemsDataInput;
-  create: UserCreateWithoutItemsInput;
 }
 
 export interface ItemUpdateManyMutationInput {
@@ -600,6 +626,7 @@ export interface Event {
 
 export interface EventPromise extends Promise<Event>, Fragmentable {
   id: () => Promise<ID_Output>;
+  item: <T = ItemPromise>() => T;
   duration: () => Promise<Int>;
   value: () => Promise<Int>;
   creator: <T = UserPromise>() => T;
@@ -609,6 +636,7 @@ export interface EventSubscription
   extends Promise<AsyncIterator<Event>>,
     Fragmentable {
   id: () => Promise<AsyncIterator<ID_Output>>;
+  item: <T = ItemSubscription>() => T;
   duration: () => Promise<AsyncIterator<Int>>;
   value: () => Promise<AsyncIterator<Int>>;
   creator: <T = UserSubscription>() => T;
@@ -618,8 +646,40 @@ export interface EventNullablePromise
   extends Promise<Event | null>,
     Fragmentable {
   id: () => Promise<ID_Output>;
+  item: <T = ItemPromise>() => T;
   duration: () => Promise<Int>;
   value: () => Promise<Int>;
+  creator: <T = UserPromise>() => T;
+}
+
+export interface Item {
+  id: ID_Output;
+  name: String;
+  multiplier: Float;
+}
+
+export interface ItemPromise extends Promise<Item>, Fragmentable {
+  id: () => Promise<ID_Output>;
+  name: () => Promise<String>;
+  multiplier: () => Promise<Float>;
+  creator: <T = UserPromise>() => T;
+}
+
+export interface ItemSubscription
+  extends Promise<AsyncIterator<Item>>,
+    Fragmentable {
+  id: () => Promise<AsyncIterator<ID_Output>>;
+  name: () => Promise<AsyncIterator<String>>;
+  multiplier: () => Promise<AsyncIterator<Float>>;
+  creator: <T = UserSubscription>() => T;
+}
+
+export interface ItemNullablePromise
+  extends Promise<Item | null>,
+    Fragmentable {
+  id: () => Promise<ID_Output>;
+  name: () => Promise<String>;
+  multiplier: () => Promise<Float>;
   creator: <T = UserPromise>() => T;
 }
 
@@ -676,37 +736,6 @@ export interface UserNullablePromise
     first?: Int;
     last?: Int;
   }) => T;
-}
-
-export interface Item {
-  id: ID_Output;
-  name: String;
-  multiplier: Float;
-}
-
-export interface ItemPromise extends Promise<Item>, Fragmentable {
-  id: () => Promise<ID_Output>;
-  name: () => Promise<String>;
-  multiplier: () => Promise<Float>;
-  creator: <T = UserPromise>() => T;
-}
-
-export interface ItemSubscription
-  extends Promise<AsyncIterator<Item>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  name: () => Promise<AsyncIterator<String>>;
-  multiplier: () => Promise<AsyncIterator<Float>>;
-  creator: <T = UserSubscription>() => T;
-}
-
-export interface ItemNullablePromise
-  extends Promise<Item | null>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  name: () => Promise<String>;
-  multiplier: () => Promise<Float>;
-  creator: <T = UserPromise>() => T;
 }
 
 export interface EventConnection {
@@ -1058,11 +1087,6 @@ export type ID_Input = string | number;
 export type ID_Output = string;
 
 /*
-The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
-*/
-export type Int = number;
-
-/*
 The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
 */
 export type String = string;
@@ -1071,6 +1095,11 @@ export type String = string;
 The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).
 */
 export type Float = number;
+
+/*
+The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
+*/
+export type Int = number;
 
 /*
 The `Boolean` scalar type represents `true` or `false`.
